@@ -1,4 +1,4 @@
-//완전 탐색
+//DFS(backtracking, 완전탐색) 
  
 #include <iostream>
 #include <vector>
@@ -9,182 +9,172 @@ using namespace std;
 typedef tuple<int,int,int> t;
 
 int N,M;
-int office[8][8];
-int tmp_office[8][8];
+
 int Min = 86;
+vector<vector<int>> v;
 
 vector<t> cctv;
-int cctv_num;
-vector<vector<int>> directions; 
-vector<int> d = {0,1,2,3};
+int cctv_num = 0; 
 
 void Input() {
 	cin >> N >> M;
-	
+	vector<int> tmpv;
+	int tmp;
 	for (int i=0; i<N; i++) {
 		for (int j=0; j<M; j++) {
-			cin >> office[i][j];
+			cin >> tmp;
+			tmpv.push_back(tmp);
 		}
+		v.push_back(tmpv);
+		tmpv.clear();
 	} // Input office
 	
+	
 	for (int i=0; i<N; i++) {
 		for (int j=0; j<M; j++) {
-			if (office[i][j] != 0) {
-				cctv.push_back(make_tuple(i,j,office[i][j]));
+			if (v[i][j] != 0 && v[i][j] != 6) {
+				cctv.push_back(make_tuple(i,j,v[i][j]));
 				cctv_num++;
 			}
 		}
-	} // Input cctv
+	} // Input cctv	
+
+}
+
+void check(int x, int y, int z, vector<vector<int>>& tmp_office) {
+
 	
-}
-
-void east(int x, int y) {
-	for (int i=y; i<M; i++) {
-		if (tmp_office[x][i]==6) break;
-		else if (tmp_office[x][i]==0) tmp_office[x][i] = 7;
+	switch(z) {
+		case 0: //90 east 0
+			for (int i=y; i<M; i++) {
+				if (tmp_office[x][i]==6) break;
+				else if (tmp_office[x][i]==0) tmp_office[x][i] = 7;
+			}
+			break;
+		
+		case 1: //270	west 1
+			for (int i=y; i>=0; i--) {
+				if (tmp_office[x][i]==6) break;
+				else if (tmp_office[x][i]==0) tmp_office[x][i] = 7;
+			}
+			break;
+		
+		case 2: //180 south 2
+			for (int i=x; i<N; i++) {
+				if (tmp_office[i][y]==6) break;
+				else if (tmp_office[i][y]== 0) tmp_office[i][y] = 7;
+			}
+			break;
+		
+		case 3: //360 north 3
+			for (int i=x; i>=0; i--) {
+				if (tmp_office[i][y]== 6) break;
+				else if (tmp_office[i][y]== 0) tmp_office[i][y] = 7;
+			}
+			break;
 	}
 }
 
-void west(int x, int y) {
-	for (int i=y; i>=0; i--) {
-		if (tmp_office[x][i]==6) break;
-		else if (tmp_office[x][i]==0) tmp_office[x][i] = 7;
+void DFS(int depth, vector<vector<int>> prev) {
+	vector<vector<int>> tmp_office(N,vector<int>(M,0));
+	if (depth == cctv_num) {
+		int answer = 0;
+		for (int i=0; i<N; i++) {
+			for (int j=0; j<M; j++) {
+				if (prev[i][j] == 0) {
+					answer++;
+					//cout << "i : " << i << " j : " << j << endl;	
+				} 
+			}
+		}
+		if (Min >= answer) Min = answer;		
 	}
-}
-
-void south(int x, int y) {
-	for (int i=x; i<N; i++) {
-		if (tmp_office[i][y]==6) break;
-		else if (tmp_office[i][y]== 0) tmp_office[i][y] = 7;
-	}
-}
-
-void north(int x, int y) {
-	for (int i=x; i>=0; i--) {
-		if (tmp_office[i][y]== 6) break;
-		else if (tmp_office[i][y]== 0) tmp_office[i][y] = 7;
-	}
-}
-
-void FindDirections(vector<int> v, int depth) {
-	if (depth == cctv_num) directions.push_back(v);
 	else {
-		for (int i=0; i<d.size(); i++) {
-			v.push_back(d[i]);
-			FindDirections(v,depth+1);
+		int x = get<0>(cctv[depth]);
+		int y = get<1>(cctv[depth]);
+		int z = get<2>(cctv[depth]); // cctv 종류
+		
+		
+		switch(z) 
+		{
+			case 1:
+				for (int i=0; i<4; i++) {
+					for (int i=0; i<N; i++) {
+						for (int j=0; j<M; j++) {
+							tmp_office[i][j] = prev[i][j];
+						}
+					}
+					check(x,y,i,tmp_office);
+					DFS(depth+1, tmp_office);
+				}
+				break;
+			
+			case 2:
+				for (int i=0; i<2; i++) {
+					for (int i=0; i<N; i++) {
+						for (int j=0; j<M; j++) {
+							tmp_office[i][j] = prev[i][j];
+						}
+					} // 0 1 2 3 
+					check(x,y,i*2,tmp_office);
+					check(x,y,i*2+1,tmp_office);
+					DFS(depth+1, tmp_office);
+				}
+				break;
+			
+			case 3:
+				for (int i=0; i<4; i++) {
+					for (int i=0; i<N; i++) {
+						for (int j=0; j<M; j++) {
+							tmp_office[i][j] = prev[i][j];
+						}
+					} // 0,2, 0,3 1,2 1,3
+					check(x,y,i/2,tmp_office);
+					check(x,y,(i%2)+2,tmp_office);
+					DFS(depth+1, tmp_office);
+				}
+				break;
+			
+			case 4:
+				for (int i=0; i<4; i++) {
+					for (int i=0; i<N; i++) {
+						for (int j=0; j<M; j++) {
+							tmp_office[i][j] = prev[i][j];
+						}
+					} 
+					check(x,y,i/3,tmp_office);
+					check(x,y,(i%2)+1,tmp_office);
+					if (i == 2) check(x,y,2,tmp_office);
+					else check(x,y,3,tmp_office);
+					DFS(depth+1, tmp_office);
+				}
+				break;
+			case 5:
+				for (int i=0; i<4; i++) {
+					for (int i=0; i<N; i++) {
+						for (int j=0; j<M; j++) {
+							tmp_office[i][j] = prev[i][j];
+						}
+					} 
+					check(x,y,0,tmp_office);
+					check(x,y,1,tmp_office);
+					check(x,y,2,tmp_office);
+					check(x,y,3,tmp_office);
+					DFS(depth+1, tmp_office);
+				}
+				break;									
 		}
+			
 	}
-	
 }
 
-
-void Solve(vector<int> direction) {
-	
-	for (int i=0; i<N; i++) {
-		for (int j=0; j<M; j++) {
-			tmp_office[i][j] = office[i][j];
-		}
-	}
-	
-	for (int i=0; i<cctv_num; i++) {
-		int x = get<0>(cctv[i]);
-		int y = get<1>(cctv[i]);
-		int z = get<2>(cctv[i]); // cctv 종류
-		int di = direction[i]; 
-		
-		if (z == 1) {
-			if (di == 0) east(x,y);
-			if (di == 1) south(x,y);
-			if (di == 2) west(x,y);
-			if (di == 3) north(x,y);
-		}
-		
-		if (z == 2) {
-			if (di == 0 || di == 2) {
-				east(x,y);
-				west(x,y);
-			}
-			if (di == 1 || di == 3) {
-				south(x,y);
-				north(x,y);
-			}
-		}
-		
-		if (z == 3) {
-			if (di == 0) {
-				north(x,y);
-				east(x,y);
-			}
-			if (di == 1) {
-				east(x,y);
-				south(x,y);
-			}
-			if (di == 2) {
-				west(x,y);
-				south(x,y);
-			}
-			if (di == 3) {
-				north(x,y);
-				west(x,y);
-			}
-		}
-		
-		if (z == 4) {
-			if (di == 0) {
-				north(x,y);
-				east(x,y);
-				west(x,y);
-			}
-			if (di == 1) {
-				north(x,y);
-				east(x,y);
-				west(x,y);
-			}
-			if (di == 2) {
-				east(x,y);
-				west(x,y);
-				south(x,y);
-			}
-			if (di == 3) {
-				north(x,y);
-				south(x,y);
-				west(x,y);
-			}
-		}
-		
-		if (z == 5) {
-			east(x,y);
-			west(x,y);
-			north(x,y);
-			south(x,y);
-		}
-	}
-	int answer = 0;
-	for (int i=0; i<N; i++) {
-		for (int j=0; j<M; j++) {
-			if (tmp_office[i][j] == 0) answer++; 
-		}
-	}
-	if (Min >= answer) Min = answer;
-	memset(tmp_office,0,sizeof(tmp_office)); 
-}
 
 int main(void) {
 	
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
 	Input();
-	vector<int> v(cctv_num);
-	FindDirections(v,0);
-	
-	for (int i=0; i<directions.size(); i++) {
-		Solve(directions[i]);
-	}
-	
-	for (int i=0; i<directions.size(); i++) {
-		for (int j=0; j<cctv_num; j++) {
-			cout << directions[i][j] << " "; 
-		}
-		cout << endl;
-	}
+	DFS(0,v);
 	cout << Min;
 	
 	return 0;
