@@ -7,7 +7,6 @@ int N;
 string e[2000];
 string ans[2000];
 
-
 int main(void) {
 	cin >> N;
 	string tmp;
@@ -34,12 +33,11 @@ int main(void) {
 				continue;
 			}
 		}
-		//cout << " N : " << k << endl;		
+		
 		for (int i=0; i<s.size(); i++) {
 			char next = s[i];
 			bool stop = false;
-
-			//cout << "state :" << state << endl;
+			//cout << state;
 			switch(state) {
 			
 				case 1:
@@ -73,25 +71,31 @@ int main(void) {
 					break;
 				
 				case 5:
-					if (next == '0') state = 5;
-					else state = 6;
+					if (next == '0') state = 6;
+					else state = 7;
 					break;
 				
 				case 6:
-					if (next == '1') state = 9;
-					else state = 3;
+					if (next == '1') state = 7;
+					else state = 6;
 					break;
 				case 7:
+					if (next == '1') state = 8;
+					else state = 3;
+					break;
+				case 8: 
+					if (next == '1') state = 8;
+					else state = 9;
+					break;
+				case 9:
 					if (next == '1') state = 1;
 					else state = 5;
 					break;
-				case 9: 
-					if (next == 1) state = 9;
-					else state = 7;
 			}
 			if(stop) break;
 		}
-		if (state == 3 || state == 2 || state == 4 || state == 5 || state == 7) ans[k] = "NO";
+		
+		if (state == 3 || state == 2 || state == 4 || state == 5 || state == 9 || state == 6) ans[k] = "NO";
 	}
 	
 	for (int i=0; i<N; i++) {
